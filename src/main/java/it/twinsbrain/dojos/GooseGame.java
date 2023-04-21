@@ -1,16 +1,15 @@
 package it.twinsbrain.dojos;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
 public class GooseGame {
     private final BufferedReader input;
     private final PrintWriter output;
-
-    private final List<Player> players = new ArrayList<>();
+    private final Map<String, Player> players = new HashMap<>();
 
     public GooseGame(InputStream input, OutputStream output) {
         this.input = new BufferedReader(new InputStreamReader(input));
@@ -20,13 +19,28 @@ public class GooseGame {
     public void play() throws Exception {
         String line;
         while (!(line = input.readLine()).equals("quit")) {
-            var commandParts = line.split(" ");
-            players.add(new Player(commandParts[2]));
-            output.println("players: " + players.stream().map(Player::name).collect(joining(", ")));
+            AddPlayerCommand addCommand = parseCommand(line);
+            if (players.containsKey(addCommand.playerName)) {
+                output.println(addCommand.playerName + ": already existing player");
+            } else {
+                players.put(addCommand.playerName, new Player(addCommand.playerName));
+                output.println("players: " + players.values().stream().map(Player::name).collect(joining(", ")));
+            }
         }
         output.print("See you!");
         output.flush();
     }
 
-    record Player(String name) {}
+    private static AddPlayerCommand parseCommand(String line) {
+        var commandParts = line.split(" ");
+        String playerName = commandParts[2];
+        var addCommand = new AddPlayerCommand(playerName);
+        return addCommand;
+    }
+
+    record Player(String name) {
+    }
+
+    record AddPlayerCommand(String playerName) {
+    }
 }

@@ -37,7 +37,7 @@ class GooseGameTest {
     }
 
     @Test
-    void should_allow_to_more_than_one_player() throws Exception {
+    void should_allow_to_add_more_than_one_player() throws Exception {
         var commands = String.join("\n", "add player Pippo", "add player Pluto", "quit");
         var input = new ByteArrayInputStream(commands.getBytes());
         var output = new ByteArrayOutputStream();
@@ -47,6 +47,22 @@ class GooseGameTest {
                         """
                                 players: Pippo
                                 players: Pippo, Pluto
+                                See you!"""
+                )
+        );
+    }
+
+    @Test
+    void should_not_allow_to_add_more_than_once_the_same_player() throws Exception {
+        var commands = String.join("\n", "add player Pippo", "add player Pippo", "quit");
+        var input = new ByteArrayInputStream(commands.getBytes());
+        var output = new ByteArrayOutputStream();
+        new GooseGame(input, output).play();
+        assertThat(output.toString(),
+                equalTo(
+                        """
+                                players: Pippo
+                                Pippo: already existing player
                                 See you!"""
                 )
         );
