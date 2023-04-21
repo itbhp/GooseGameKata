@@ -21,4 +21,18 @@ class GooseGameTest {
 
         assertThat(output.toString(), equalTo("See you!"));
     }
+
+    @Test
+    void should_allow_to_add_a_player() throws Exception {
+        var commands = String.join("\n", "add player Pippo", "quit");
+        var input = new ByteArrayInputStream(commands.getBytes());
+        var output = new ByteArrayOutputStream();
+        new GooseGame(input, output).play();
+        assertThat(output.toString(),
+                equalTo(
+                        "players: Pippo" + "\n" +
+                                "See you!"
+                )
+        );
+    }
 }
