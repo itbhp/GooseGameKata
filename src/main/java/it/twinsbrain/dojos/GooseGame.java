@@ -22,15 +22,15 @@ public class GooseGame {
         while (!(line = input.readLine()).equals("quit")) {
             Command command = parseCommand(line);
             switch (command) {
-                case AddPlayerCommand addPlayerCommand -> executeAddCommand(addPlayerCommand);
-                case MovePlayerCommand movePlayerCommand -> executeMoveCommand(movePlayerCommand);
+                case AddPlayerCommand addPlayerCommand -> execute(addPlayerCommand);
+                case MovePlayerCommand movePlayerCommand -> execute(movePlayerCommand);
             }
         }
         output.print("See you!");
         output.flush();
     }
 
-    private void executeMoveCommand(MovePlayerCommand command) {
+    private void execute(MovePlayerCommand command) {
         if (players.containsKey(command.playerName)) {
             var player = players.get(command.playerName);
             var newPosition = player.position() + command.firstDraw + command.secondDraw;
@@ -49,7 +49,7 @@ public class GooseGame {
         }
     }
 
-    private void executeAddCommand(AddPlayerCommand addCommand) {
+    private void execute(AddPlayerCommand addCommand) {
         if (players.containsKey(addCommand.playerName)) {
             output.println(addCommand.playerName + ": already existing player");
         } else {
