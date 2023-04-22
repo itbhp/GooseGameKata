@@ -37,9 +37,8 @@ public class GooseGame {
 
     private static AddPlayerCommand parseCommand(String line) {
         var commandParts = line.split(" ");
-        String playerName = commandParts[2];
-        var addCommand = new AddPlayerCommand(playerName);
-        return addCommand;
+        var playerName = commandParts[2];
+        return new AddPlayerCommand(playerName);
     }
 
     record Player(String name) {

@@ -48,13 +48,15 @@ class GooseGameTest {
     }
 
     static class GameTester {
-        private CharSequence[] commandList;
+        private final CharSequence[] commandList;
         private final ByteArrayOutputStream output = new ByteArrayOutputStream();
 
+        GameTester(CharSequence[] commandList) {
+            this.commandList = commandList;
+        }
+
         static GameTester givenTheseCommands(CharSequence... commandList) {
-            var gameTester = new GameTester();
-            gameTester.commandList = commandList;
-            return gameTester;
+            return new GameTester(commandList);
         }
 
         GameTester whenGameIsPlayed() throws Exception {
