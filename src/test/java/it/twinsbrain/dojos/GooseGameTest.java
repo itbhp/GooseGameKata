@@ -47,6 +47,16 @@ class GooseGameTest {
                         See you!""");
     }
 
+    @Test
+    void should_allow_to_move_players_in_the_board() throws Exception {
+        givenTheseCommands("add player Pippo", "move Pippo 4, 2", "quit")
+                .whenGameIsPlayed()
+                .thenOutputShouldBe("""
+                        players: Pippo
+                        Pippo rolls 4, 2. Pippo moves from Start to 6
+                        See you!""");
+    }
+
     static class GameTester {
         private final CharSequence[] commandList;
         private final ByteArrayOutputStream output = new ByteArrayOutputStream();
