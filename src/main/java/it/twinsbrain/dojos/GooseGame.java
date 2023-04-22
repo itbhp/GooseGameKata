@@ -20,15 +20,19 @@ public class GooseGame {
         String line;
         while (!(line = input.readLine()).equals("quit")) {
             AddPlayerCommand addCommand = parseCommand(line);
-            if (players.containsKey(addCommand.playerName)) {
-                output.println(addCommand.playerName + ": already existing player");
-            } else {
-                players.put(addCommand.playerName, new Player(addCommand.playerName));
-                output.println("players: " + players.values().stream().map(Player::name).collect(joining(", ")));
-            }
+            executeAddCommand(addCommand);
         }
         output.print("See you!");
         output.flush();
+    }
+
+    private void executeAddCommand(AddPlayerCommand addCommand) {
+        if (players.containsKey(addCommand.playerName)) {
+            output.println(addCommand.playerName + ": already existing player");
+        } else {
+            players.put(addCommand.playerName, new Player(addCommand.playerName));
+            output.println("players: " + players.values().stream().map(Player::name).collect(joining(", ")));
+        }
     }
 
     private static AddPlayerCommand parseCommand(String line) {
