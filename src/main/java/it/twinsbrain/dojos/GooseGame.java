@@ -33,14 +33,13 @@ public class GooseGame {
     private void execute(MovePlayerCommand command) {
         if (players.containsKey(command.playerName)) {
             var player = players.get(command.playerName);
-            var newPosition = player.position() + command.firstDraw + command.secondDraw;
-            var updatedPlayer = new Player(player.name, newPosition);
+            var updatedPlayer = player.move(command.steps());
             players.put(player.name, updatedPlayer);
             output.println(format(
                             "%s rolls %d, %d. %s moves from %s to %s",
                             player.name,
-                            command.firstDraw,
-                            command.secondDraw,
+                            command.firstDice,
+                            command.secondDice,
                             player.name,
                             player.cell(),
                             updatedPlayer.cell()
@@ -61,13 +60,12 @@ public class GooseGame {
     private static Command parseCommand(String line) {
         var commandParts = line.split(" ");
         var commandName = commandParts[0];
-        var playerName = commandName.equals("add") ? commandParts[2] : commandParts[1];
         return switch (commandName) {
-            case "add" -> new AddPlayerCommand(playerName);
+            case "add" -> new AddPlayerCommand(commandParts[2]);
             case "move" -> {
-                var firstDraw = Integer.parseInt(commandParts[2].replace(",", "").trim());
-                var secondDraw = Integer.parseInt(commandParts[3].trim());
-                yield new MovePlayerCommand(playerName, firstDraw, secondDraw);
+                var firstDice = Integer.parseInt(commandParts[2].replace(",", "").trim());
+                var secondDice = Integer.parseInt(commandParts[3].trim());
+                yield new MovePlayerCommand(commandParts[1], firstDice, secondDice);
             }
             default -> throw new UnsupportedOperationException("unknown command");
         };
@@ -77,6 +75,10 @@ public class GooseGame {
         public String cell() {
             return position == 0 ? "Start" : String.valueOf(position);
         }
+
+        public Player move(int steps) {
+            return new Player(name, position + steps);
+        }
     }
 
     sealed interface Command {
@@ -85,6 +87,9 @@ public class GooseGame {
     record AddPlayerCommand(String playerName) implements Command {
     }
 
-    record MovePlayerCommand(String playerName, int firstDraw, int secondDraw) implements Command {
+    record MovePlayerCommand(String playerName, int firstDice, int secondDice) implements Command {
+        private int steps() {
+            return firstDice + secondDice;
+        }
     }
 }
