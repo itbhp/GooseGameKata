@@ -48,12 +48,31 @@ class GooseGameTest {
     }
 
     @Test
-    void should_allow_to_move_players_in_the_board() throws Exception {
+    void should_allow_to_move_a_player_in_the_board() throws Exception {
         givenTheseCommands("add player Pippo", "move Pippo 4, 2", "quit")
                 .whenGameIsPlayed()
                 .thenOutputShouldBe("""
                         players: Pippo
                         Pippo rolls 4, 2. Pippo moves from Start to 6
+                        See you!""");
+    }
+
+    @Test
+    void should_allow_to_move_multiple_players_in_the_board() throws Exception {
+        givenTheseCommands(
+                "add player Pippo",
+                "add player Pluto",
+                "move Pippo 4, 2",
+                "move Pluto 2, 2",
+                "move Pippo 2, 1",
+                "quit")
+                .whenGameIsPlayed()
+                .thenOutputShouldBe("""
+                        players: Pippo
+                        players: Pippo, Pluto
+                        Pippo rolls 4, 2. Pippo moves from Start to 6
+                        Pluto rolls 2, 2. Pluto moves from Start to 4
+                        Pippo rolls 2, 1. Pippo moves from 6 to 9
                         See you!""");
     }
 
