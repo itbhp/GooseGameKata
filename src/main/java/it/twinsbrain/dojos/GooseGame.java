@@ -72,12 +72,14 @@ public class GooseGame {
     }
 
     record Player(String name, int position) {
+        private static final int BOARD_SIZE = 63;
+
         public String cell() {
             return position == 0 ? "Start" : String.valueOf(position);
         }
 
         public Player move(int steps) {
-            return new Player(name, position + steps);
+            return new Player(name, (position + steps) % BOARD_SIZE);
         }
     }
 

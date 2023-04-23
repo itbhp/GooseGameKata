@@ -76,6 +76,17 @@ class GooseGameTest {
                         See you!""");
     }
 
+    @Test
+    void should_move_back_player_when_steps_beyond_cell_63_to_the_exceeding_amount() throws Exception {
+        givenTheseCommands("add player Pippo", "move Pippo 58, 2", "move Pippo 2, 3","quit")
+                .whenGameIsPlayed()
+                .thenOutputShouldBe("""
+                        players: Pippo
+                        Pippo rolls 58, 2. Pippo moves from Start to 60
+                        Pippo rolls 2, 3. Pippo moves from 60 to 2
+                        See you!""");
+    }
+
     static class GameTester {
         private final CharSequence[] commandList;
         private final ByteArrayOutputStream output = new ByteArrayOutputStream();
