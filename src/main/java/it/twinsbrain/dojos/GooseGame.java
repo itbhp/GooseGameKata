@@ -26,7 +26,7 @@ public class GooseGame {
             Command command = parseCommand(line);
             switch (command) {
                 case AddPlayerCommand addPlayerCommand -> {
-                    switch (execute(addPlayerCommand, players::containsKey)) {
+                    switch (addPlayerCommand.execute(players::containsKey)) {
                         case PlayerAdded playerAdded -> {
                             players.put(addPlayerCommand.playerName, playerAdded.player);
                             output.println(playerAdded.messageFn.apply(players));
@@ -35,7 +35,7 @@ public class GooseGame {
                     }
                 }
                 case MovePlayerCommand movePlayerCommand -> {
-                    switch (execute(movePlayerCommand, players::get)) {
+                    switch (movePlayerCommand.execute(players::get)) {
                         case GameFinished gameFinished -> {
                             players.put(movePlayerCommand.playerName, gameFinished.winner);
                             output.print(gameFinished.message);
@@ -53,42 +53,6 @@ public class GooseGame {
             output.print("See you!");
         }
         output.flush();
-    }
-
-    private MoveResult execute(MovePlayerCommand command, Function<String, Player> retrievePlayer) {
-        var player = retrievePlayer.apply(command.playerName);
-        var updatedPlayer = player.move(command.steps());
-        if (updatedPlayer.hasWon()) {
-            return new GameFinished(
-                    updatedPlayer,
-                    moveMessage(command, player, updatedPlayer) + ". " + player.name + " Wins!!"
-            );
-        } else {
-            return new PlayerMoved(updatedPlayer, moveMessage(command, player, updatedPlayer));
-        }
-    }
-
-    private static String moveMessage(MovePlayerCommand command, Player player, Player updatedPlayer) {
-        return format(
-                "%s rolls %d, %d. %s moves from %s to %s",
-                player.name,
-                command.firstDice,
-                command.secondDice,
-                player.name,
-                player.cell(),
-                updatedPlayer.cell()
-        );
-    }
-
-    private AddResult execute(AddPlayerCommand addCommand, Predicate<String> isExistingPlayer) {
-        if (isExistingPlayer.test(addCommand.playerName)) {
-            return new PlayerAlreadyPresent(addCommand.playerName + ": already existing player");
-        } else {
-            return new PlayerAdded(
-                    new Player(addCommand.playerName, 0, false),
-                    players -> "players: " + players.values().stream().map(Player::name).collect(joining(", "))
-            );
-        }
     }
 
     private static Command parseCommand(String line) {
@@ -144,11 +108,45 @@ public class GooseGame {
     }
 
     record AddPlayerCommand(String playerName) implements Command {
+        private AddResult execute(Predicate<String> isExistingPlayer) {
+            if (isExistingPlayer.test(playerName)) {
+                return new PlayerAlreadyPresent(playerName + ": already existing player");
+            } else {
+                return new PlayerAdded(
+                        new Player(playerName, 0, false),
+                        players -> "players: " + players.values().stream().map(Player::name).collect(joining(", "))
+                );
+            }
+        }
     }
 
     record MovePlayerCommand(String playerName, int firstDice, int secondDice) implements Command {
         private int steps() {
             return firstDice + secondDice;
+        }
+
+        private MoveResult execute(Function<String, Player> retrievePlayer) {
+            var player = retrievePlayer.apply(playerName);
+            var updatedPlayer = player.move(steps());
+            if (updatedPlayer.hasWon()) {
+                return new GameFinished(
+                        updatedPlayer,
+                        moveMessage(this, player, updatedPlayer) + ". " + player.name + " Wins!!"
+                );
+            } else {
+                return new PlayerMoved(updatedPlayer, moveMessage(this, player, updatedPlayer));
+            }
+        }
+        private String moveMessage(MovePlayerCommand command, Player player, Player updatedPlayer) {
+            return format(
+                    "%s rolls %d, %d. %s moves from %s to %s",
+                    player.name,
+                    command.firstDice,
+                    command.secondDice,
+                    player.name,
+                    player.cell(),
+                    updatedPlayer.cell()
+            );
         }
     }
 }
