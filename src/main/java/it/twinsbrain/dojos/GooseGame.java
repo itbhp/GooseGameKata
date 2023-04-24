@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -25,7 +26,7 @@ public class GooseGame {
             Command command = parseCommand(line);
             switch (command) {
                 case AddPlayerCommand addPlayerCommand -> {
-                    switch (execute(addPlayerCommand)) {
+                    switch (execute(addPlayerCommand, players::containsKey)) {
                         case PlayerAdded playerAdded -> {
                             players.put(addPlayerCommand.playerName, playerAdded.player);
                             output.println(playerAdded.messageFn.apply(players));
@@ -34,7 +35,7 @@ public class GooseGame {
                     }
                 }
                 case MovePlayerCommand movePlayerCommand -> {
-                    switch (execute(movePlayerCommand)) {
+                    switch (execute(movePlayerCommand, players::get)) {
                         case GameFinished gameFinished -> {
                             players.put(movePlayerCommand.playerName, gameFinished.winner);
                             output.print(gameFinished.message);
@@ -54,8 +55,8 @@ public class GooseGame {
         output.flush();
     }
 
-    private MoveResult execute(MovePlayerCommand command) {
-        var player = players.get(command.playerName);
+    private MoveResult execute(MovePlayerCommand command, Function<String, Player> retrievePlayer) {
+        var player = retrievePlayer.apply(command.playerName);
         var updatedPlayer = player.move(command.steps());
         if (updatedPlayer.hasWon()) {
             return new GameFinished(
@@ -79,13 +80,14 @@ public class GooseGame {
         );
     }
 
-    private AddResult execute(AddPlayerCommand addCommand) {
-        if (players.containsKey(addCommand.playerName)) {
+    private AddResult execute(AddPlayerCommand addCommand, Predicate<String> isExistingPlayer) {
+        if (isExistingPlayer.test(addCommand.playerName)) {
             return new PlayerAlreadyPresent(addCommand.playerName + ": already existing player");
         } else {
             return new PlayerAdded(
                     new Player(addCommand.playerName, 0, false),
-                    players -> "players: " + players.values().stream().map(Player::name).collect(joining(", ")));
+                    players -> "players: " + players.values().stream().map(Player::name).collect(joining(", "))
+            );
         }
     }
 
