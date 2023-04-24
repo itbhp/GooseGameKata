@@ -18,41 +18,54 @@ public class GooseGame {
     }
 
     public void play() throws Exception {
+        var someoneWon = false;
         String line;
-        while (!(line = input.readLine()).equals("quit")) {
+        while (!someoneWon && !(line = input.readLine()).equals("quit")) {
             Command command = parseCommand(line);
             switch (command) {
                 case AddPlayerCommand addPlayerCommand -> execute(addPlayerCommand);
-                case MovePlayerCommand movePlayerCommand -> execute(movePlayerCommand);
+                case MovePlayerCommand movePlayerCommand -> someoneWon = execute(movePlayerCommand);
             }
         }
-        output.print("See you!");
+        if (!someoneWon) {
+            output.print("See you!");
+        }
         output.flush();
     }
 
-    private void execute(MovePlayerCommand command) {
+    private boolean execute(MovePlayerCommand command) {
         if (players.containsKey(command.playerName)) {
             var player = players.get(command.playerName);
             var updatedPlayer = player.move(command.steps());
             players.put(player.name, updatedPlayer);
-            output.println(format(
-                            "%s rolls %d, %d. %s moves from %s to %s",
-                            player.name,
-                            command.firstDice,
-                            command.secondDice,
-                            player.name,
-                            player.cell(),
-                            updatedPlayer.cell()
-                    )
-            );
+            if (updatedPlayer.hasWon()) {
+                output.print(moveMessage(command, player, updatedPlayer));
+                output.print(". " + player.name + " Wins!!");
+            } else {
+                output.println(moveMessage(command, player, updatedPlayer));
+            }
+            return updatedPlayer.hasWon();
         }
+        return false;
+    }
+
+    private static String moveMessage(MovePlayerCommand command, Player player, Player updatedPlayer) {
+        return format(
+                "%s rolls %d, %d. %s moves from %s to %s",
+                player.name,
+                command.firstDice,
+                command.secondDice,
+                player.name,
+                player.cell(),
+                updatedPlayer.cell()
+        );
     }
 
     private void execute(AddPlayerCommand addCommand) {
         if (players.containsKey(addCommand.playerName)) {
             output.println(addCommand.playerName + ": already existing player");
         } else {
-            players.put(addCommand.playerName, new Player(addCommand.playerName, 0));
+            players.put(addCommand.playerName, new Player(addCommand.playerName, 0, false));
             output.println("players: " + players.values().stream().map(Player::name).collect(joining(", ")));
         }
     }
@@ -71,15 +84,17 @@ public class GooseGame {
         };
     }
 
-    record Player(String name, int position) {
+    record Player(String name, int position, boolean hasWon) {
         private static final int BOARD_SIZE = 63;
 
         public String cell() {
-            return position == 0 ? "Start" : String.valueOf(position);
+            return position == 0
+                    ? (hasWon ? String.valueOf(BOARD_SIZE) : "Start")
+                    : String.valueOf(position);
         }
 
         public Player move(int steps) {
-            return new Player(name, (position + steps) % BOARD_SIZE);
+            return new Player(name, (position + steps) % BOARD_SIZE, position + steps == BOARD_SIZE);
         }
     }
 

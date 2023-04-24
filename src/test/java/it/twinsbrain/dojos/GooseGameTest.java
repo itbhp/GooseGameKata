@@ -87,6 +87,16 @@ class GooseGameTest {
                         See you!""");
     }
 
+    @Test
+    void should_finish_when_A_player_wins() throws Exception {
+        givenTheseCommands("add player Pippo", "move Pippo 58, 2", "move Pippo 1, 2")
+                .whenGameIsPlayed()
+                .thenOutputShouldBe("""
+                        players: Pippo
+                        Pippo rolls 58, 2. Pippo moves from Start to 60
+                        Pippo rolls 1, 2. Pippo moves from 60 to 63. Pippo Wins!!""");
+    }
+
     static class GameTester {
         private final CharSequence[] commandList;
         private final ByteArrayOutputStream output = new ByteArrayOutputStream();
