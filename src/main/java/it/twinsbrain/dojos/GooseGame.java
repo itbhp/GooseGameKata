@@ -3,6 +3,7 @@ package it.twinsbrain.dojos;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -18,35 +19,52 @@ public class GooseGame {
     }
 
     public void play() throws Exception {
-        var someoneWon = false;
         String line;
-        while (!someoneWon && !(line = input.readLine()).equals("quit")) {
+        loop:
+        while (!(line = input.readLine()).equals("quit")) {
             Command command = parseCommand(line);
             switch (command) {
-                case AddPlayerCommand addPlayerCommand -> execute(addPlayerCommand);
-                case MovePlayerCommand movePlayerCommand -> someoneWon = execute(movePlayerCommand);
+                case AddPlayerCommand addPlayerCommand -> {
+                    switch (execute(addPlayerCommand)) {
+                        case PlayerAdded playerAdded -> {
+                            players.put(addPlayerCommand.playerName, playerAdded.player);
+                            output.println(playerAdded.messageFn.apply(players));
+                        }
+                        case PlayerAlreadyPresent playerAlreadyPresent -> output.println(playerAlreadyPresent.message);
+                    }
+                }
+                case MovePlayerCommand movePlayerCommand -> {
+                    switch (execute(movePlayerCommand)) {
+                        case GameFinished gameFinished -> {
+                            players.put(movePlayerCommand.playerName, gameFinished.winner);
+                            output.print(gameFinished.message);
+                            break loop;
+                        }
+                        case PlayerMoved playerMoved -> {
+                            players.put(movePlayerCommand.playerName, playerMoved.player);
+                            output.println(playerMoved.message);
+                        }
+                    }
+                }
             }
         }
-        if (!someoneWon) {
+        if (players.values().stream().noneMatch(Player::hasWon)) {
             output.print("See you!");
         }
         output.flush();
     }
 
-    private boolean execute(MovePlayerCommand command) {
-        if (players.containsKey(command.playerName)) {
-            var player = players.get(command.playerName);
-            var updatedPlayer = player.move(command.steps());
-            players.put(player.name, updatedPlayer);
-            if (updatedPlayer.hasWon()) {
-                output.print(moveMessage(command, player, updatedPlayer));
-                output.print(". " + player.name + " Wins!!");
-            } else {
-                output.println(moveMessage(command, player, updatedPlayer));
-            }
-            return updatedPlayer.hasWon();
+    private MoveResult execute(MovePlayerCommand command) {
+        var player = players.get(command.playerName);
+        var updatedPlayer = player.move(command.steps());
+        if (updatedPlayer.hasWon()) {
+            return new GameFinished(
+                    updatedPlayer,
+                    moveMessage(command, player, updatedPlayer) + ". " + player.name + " Wins!!"
+            );
+        } else {
+            return new PlayerMoved(updatedPlayer, moveMessage(command, player, updatedPlayer));
         }
-        return false;
     }
 
     private static String moveMessage(MovePlayerCommand command, Player player, Player updatedPlayer) {
@@ -61,12 +79,13 @@ public class GooseGame {
         );
     }
 
-    private void execute(AddPlayerCommand addCommand) {
+    private AddResult execute(AddPlayerCommand addCommand) {
         if (players.containsKey(addCommand.playerName)) {
-            output.println(addCommand.playerName + ": already existing player");
+            return new PlayerAlreadyPresent(addCommand.playerName + ": already existing player");
         } else {
-            players.put(addCommand.playerName, new Player(addCommand.playerName, 0, false));
-            output.println("players: " + players.values().stream().map(Player::name).collect(joining(", ")));
+            return new PlayerAdded(
+                    new Player(addCommand.playerName, 0, false),
+                    players -> "players: " + players.values().stream().map(Player::name).collect(joining(", ")));
         }
     }
 
@@ -82,6 +101,27 @@ public class GooseGame {
             }
             default -> throw new UnsupportedOperationException("unknown command");
         };
+    }
+
+    sealed interface Result {
+    }
+
+    sealed interface AddResult extends Result {
+    }
+
+    record PlayerAlreadyPresent(String message) implements AddResult {
+    }
+
+    record PlayerAdded(Player player, Function<Map<String, Player>, String> messageFn) implements AddResult {
+    }
+
+    sealed interface MoveResult extends Result {
+    }
+
+    record PlayerMoved(Player player, String message) implements MoveResult {
+    }
+
+    record GameFinished(Player winner, String message) implements MoveResult {
     }
 
     record Player(String name, int position, boolean hasWon) {
