@@ -16,7 +16,7 @@ public class GooseGame {
 
     public GooseGame(InputStream input, OutputStream output) {
         this.input = new BufferedReader(new InputStreamReader(input));
-        this.output = new PrintWriter(output);
+        this.output = new PrintWriter(output, true);
     }
 
     public void play() throws Exception {
