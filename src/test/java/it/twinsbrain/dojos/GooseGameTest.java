@@ -1,13 +1,12 @@
 package it.twinsbrain.dojos;
 
-import org.junit.jupiter.api.Test;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-
 import static it.twinsbrain.dojos.GooseGameTest.GameTester.givenTheseCommands;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import org.junit.jupiter.api.Test;
 
 class GooseGameTest {
 
@@ -80,7 +79,7 @@ class GooseGameTest {
   }
 
   @Test
-  void should_move_back_player_when_steps_beyond_cell_63_to_the_exceeding_amount()
+  void should_bounce_back_when_a_player_steps_beyond_cell_63_to_the_exceeding_amount()
       throws Exception {
     givenTheseCommands("add player Pippo", "move Pippo 58, 2", "move Pippo 2, 3", "quit")
         .whenGameIsPlayed()
@@ -88,12 +87,12 @@ class GooseGameTest {
             """
                         players: Pippo
                         Pippo rolls 58, 2. Pippo moves from Start to 60
-                        Pippo rolls 2, 3. Pippo moves from 60 to 2
+                        Pippo rolls 2, 3. Pippo moves from 60 to 63. Pippo bounces! Pippo returns to 61
                         See you!""");
   }
 
   @Test
-  void should_finish_when_A_player_wins() throws Exception {
+  void should_finish_when_a_player_wins() throws Exception {
     givenTheseCommands("add player Pippo", "move Pippo 58, 2", "move Pippo 1, 2")
         .whenGameIsPlayed()
         .thenOutputShouldBe(

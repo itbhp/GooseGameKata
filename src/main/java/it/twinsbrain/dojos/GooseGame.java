@@ -1,13 +1,13 @@
 package it.twinsbrain.dojos;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
 
 public class GooseGame {
   private final BufferedReader input;
@@ -46,6 +46,10 @@ public class GooseGame {
               players.put(movePlayerCommand.playerName, playerMoved.player);
               output.println(playerMoved.message);
             }
+            case PlayerBouncedBack playerBouncedBack -> {
+              players.put(movePlayerCommand.playerName, playerBouncedBack.player);
+              output.println(playerBouncedBack.message);
+            }
           }
         }
       }
@@ -83,19 +87,40 @@ public class GooseGame {
 
   record PlayerMoved(Player player, String message) implements MoveResult {}
 
+  record PlayerBouncedBack(Player player, String message) implements MoveResult {}
+
   record GameFinished(Player winner, String message) implements MoveResult {}
 
-  record Player(String name, int position, boolean hasWon) {
+  record Player(String name, int position) {
+
     private static final int BOARD_SIZE = 63;
 
-    public String cell() {
-      return position == 0
-          ? (hasWon ? String.valueOf(BOARD_SIZE) : "Start")
-          : String.valueOf(position);
+    public Player move(int steps) {
+      return new Player(name, position + steps);
     }
 
-    public Player move(int steps) {
-      return new Player(name, (position + steps) % BOARD_SIZE, position + steps == BOARD_SIZE);
+    public boolean hasWon() {
+      return position == BOARD_SIZE;
+    }
+
+    public Player bounceBack() {
+      return new Player(name, BOARD_SIZE - exceedingSteps());
+    }
+
+    public boolean isBeyondTheFinish() {
+      return exceedingSteps() > 0;
+    }
+
+    public String cell() {
+      return effectivePosition() == 0 ? "Start" : String.valueOf(effectivePosition());
+    }
+
+    private int effectivePosition() {
+      return Math.min(position, BOARD_SIZE);
+    }
+
+    private int exceedingSteps() {
+      return position - BOARD_SIZE;
     }
   }
 
@@ -107,7 +132,7 @@ public class GooseGame {
         return new PlayerAlreadyPresent(playerName + ": already existing player");
       } else {
         return new PlayerAdded(
-            new Player(playerName, 0, false),
+            new Player(playerName, 0),
             players ->
                 "players: " + players.values().stream().map(Player::name).collect(joining(", ")));
       }
@@ -121,25 +146,28 @@ public class GooseGame {
 
     private MoveResult execute(Function<String, Player> retrievePlayer) {
       var player = retrievePlayer.apply(playerName);
-      var updatedPlayer = player.move(steps());
-      if (updatedPlayer.hasWon()) {
-        return new GameFinished(
-            updatedPlayer,
-            moveMessage(this, player, updatedPlayer) + ". " + player.name + " Wins!!");
-      } else {
-        return new PlayerMoved(updatedPlayer, moveMessage(this, player, updatedPlayer));
+      var movedPlayer = player.move(steps());
+      if (movedPlayer.isBeyondTheFinish()) {
+        var bounced = movedPlayer.bounceBack();
+        return new PlayerBouncedBack(
+            bounced,
+            moveMessage(player.cell(), movedPlayer.cell())
+                + String.format(
+                    ". %s bounces! %s returns to %d",
+                    player.name(), player.name(), bounced.position()));
       }
+      if (movedPlayer.hasWon()) {
+        return new GameFinished(
+            movedPlayer,
+            moveMessage(player.cell(), movedPlayer.cell()) + ". " + player.name() + " Wins!!");
+      }
+      return new PlayerMoved(movedPlayer, moveMessage(player.cell(), movedPlayer.cell()));
     }
 
-    private String moveMessage(MovePlayerCommand command, Player player, Player updatedPlayer) {
+    private String moveMessage(String startCell, String finishCell) {
       return format(
           "%s rolls %d, %d. %s moves from %s to %s",
-          player.name,
-          command.firstDice,
-          command.secondDice,
-          player.name,
-          player.cell(),
-          updatedPlayer.cell());
+          playerName, firstDice, secondDice, playerName, startCell, finishCell);
     }
   }
 }
