@@ -127,7 +127,7 @@ public class GooseGame {
   sealed interface Command {}
 
   record AddPlayerCommand(String playerName) implements Command {
-    private AddResult execute(Predicate<String> isExistingPlayer) {
+    public AddResult execute(Predicate<String> isExistingPlayer) {
       if (isExistingPlayer.test(playerName)) {
         return new PlayerAlreadyPresent(playerName + ": already existing player");
       } else {
@@ -140,21 +140,16 @@ public class GooseGame {
   }
 
   record MovePlayerCommand(String playerName, int firstDice, int secondDice) implements Command {
-    private int steps() {
-      return firstDice + secondDice;
-    }
-
-    private MoveResult execute(Function<String, Player> retrievePlayer) {
+    public MoveResult execute(Function<String, Player> retrievePlayer) {
       var player = retrievePlayer.apply(playerName);
       var movedPlayer = player.move(steps());
       if (movedPlayer.isBeyondTheFinish()) {
         var bounced = movedPlayer.bounceBack();
+        var bouncedMessage =
+            format(
+                ". %s bounces! %s returns to %d", player.name(), player.name(), bounced.position());
         return new PlayerBouncedBack(
-            bounced,
-            moveMessage(player.cell(), movedPlayer.cell())
-                + String.format(
-                    ". %s bounces! %s returns to %d",
-                    player.name(), player.name(), bounced.position()));
+            bounced, moveMessage(player.cell(), movedPlayer.cell()) + bouncedMessage);
       }
       if (movedPlayer.hasWon()) {
         return new GameFinished(
@@ -162,6 +157,10 @@ public class GooseGame {
             moveMessage(player.cell(), movedPlayer.cell()) + ". " + player.name() + " Wins!!");
       }
       return new PlayerMoved(movedPlayer, moveMessage(player.cell(), movedPlayer.cell()));
+    }
+
+    private int steps() {
+      return firstDice + secondDice;
     }
 
     private String moveMessage(String startCell, String finishCell) {
