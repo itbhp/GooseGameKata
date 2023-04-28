@@ -21,43 +21,48 @@ public class GooseGame {
 
   public void play() throws Exception {
     String line;
-    gameLoop:
     while (!"quit".equals(line = input.readLine())) {
       var command = parseCommand(line);
-      switch (command) {
-        case AddPlayerCommand addPlayerCommand -> {
-          switch (addPlayerCommand.execute(players::containsKey)) {
-            case PlayerAdded playerAdded -> {
-              players.put(addPlayerCommand.playerName, playerAdded.player);
-              output.println(playerAdded.messageFn.apply(players));
-            }
-            case PlayerAlreadyPresent playerAlreadyPresent -> output.println(
-                playerAlreadyPresent.message);
-          }
-        }
-        case MovePlayerCommand movePlayerCommand -> {
-          switch (movePlayerCommand.execute(players::get)) {
-            case GameFinished gameFinished -> {
-              players.put(movePlayerCommand.playerName, gameFinished.winner);
-              output.print(gameFinished.message);
-              break gameLoop;
-            }
-            case PlayerMoved playerMoved -> {
-              players.put(movePlayerCommand.playerName, playerMoved.player);
-              output.println(playerMoved.message);
-            }
-            case PlayerBouncedBack playerBouncedBack -> {
-              players.put(movePlayerCommand.playerName, playerBouncedBack.player);
-              output.println(playerBouncedBack.message);
-            }
-          }
-        }
-      }
+      if (gameFinishedAfter(command))
+        break;
     }
     if (players.values().stream().noneMatch(Player::hasWon)) {
       output.print("See you!");
     }
     output.flush();
+  }
+
+  private boolean gameFinishedAfter(Command command) {
+    switch (command) {
+      case AddPlayerCommand addPlayerCommand -> {
+        switch (addPlayerCommand.execute(players::containsKey)) {
+          case PlayerAdded playerAdded -> {
+            players.put(addPlayerCommand.playerName, playerAdded.player);
+            output.println(playerAdded.messageFn.apply(players));
+          }
+          case PlayerAlreadyPresent playerAlreadyPresent -> output.println(
+              playerAlreadyPresent.message);
+        }
+      }
+      case MovePlayerCommand movePlayerCommand -> {
+        switch (movePlayerCommand.execute(players::get)) {
+          case GameFinished gameFinished -> {
+            players.put(movePlayerCommand.playerName, gameFinished.winner);
+            output.print(gameFinished.message);
+            return true;
+          }
+          case PlayerMoved playerMoved -> {
+            players.put(movePlayerCommand.playerName, playerMoved.player);
+            output.println(playerMoved.message);
+          }
+          case PlayerBouncedBack playerBouncedBack -> {
+            players.put(movePlayerCommand.playerName, playerBouncedBack.player);
+            output.println(playerBouncedBack.message);
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private static Command parseCommand(String line) {
