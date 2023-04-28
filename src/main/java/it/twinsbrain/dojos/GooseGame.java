@@ -21,9 +21,9 @@ public class GooseGame {
 
   public void play() throws Exception {
     String line;
-    loop:
-    while (!(line = input.readLine()).equals("quit")) {
-      Command command = parseCommand(line);
+    gameLoop:
+    while (!"quit".equals(line = input.readLine())) {
+      var command = parseCommand(line);
       switch (command) {
         case AddPlayerCommand addPlayerCommand -> {
           switch (addPlayerCommand.execute(players::containsKey)) {
@@ -40,7 +40,7 @@ public class GooseGame {
             case GameFinished gameFinished -> {
               players.put(movePlayerCommand.playerName, gameFinished.winner);
               output.print(gameFinished.message);
-              break loop;
+              break gameLoop;
             }
             case PlayerMoved playerMoved -> {
               players.put(movePlayerCommand.playerName, playerMoved.player);
