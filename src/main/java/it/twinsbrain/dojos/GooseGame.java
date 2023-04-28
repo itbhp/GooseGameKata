@@ -32,6 +32,20 @@ public class GooseGame {
     output.flush();
   }
 
+  private static Command parseCommand(String line) {
+    var commandParts = line.split(" ");
+    var commandName = commandParts[0];
+    return switch (commandName) {
+      case "add" -> new AddPlayerCommand(commandParts[2]);
+      case "move" -> {
+        var firstDice = Integer.parseInt(commandParts[2].replace(",", "").trim());
+        var secondDice = Integer.parseInt(commandParts[3].trim());
+        yield new MovePlayerCommand(commandParts[1], firstDice, secondDice);
+      }
+      default -> throw new UnsupportedOperationException("unknown command");
+    };
+  }
+
   private boolean gameFinishedAfter(Command command) {
     switch (command) {
       case AddPlayerCommand addPlayerCommand -> {
@@ -63,20 +77,6 @@ public class GooseGame {
       }
     }
     return false;
-  }
-
-  private static Command parseCommand(String line) {
-    var commandParts = line.split(" ");
-    var commandName = commandParts[0];
-    return switch (commandName) {
-      case "add" -> new AddPlayerCommand(commandParts[2]);
-      case "move" -> {
-        var firstDice = Integer.parseInt(commandParts[2].replace(",", "").trim());
-        var secondDice = Integer.parseInt(commandParts[3].trim());
-        yield new MovePlayerCommand(commandParts[1], firstDice, secondDice);
-      }
-      default -> throw new UnsupportedOperationException("unknown command");
-    };
   }
 
   sealed interface Result {}
