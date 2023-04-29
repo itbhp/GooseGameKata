@@ -3,7 +3,11 @@ package it.twinsbrain.dojos;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,8 +27,7 @@ public class GooseGame {
     String line;
     while (!"quit".equals(line = input.readLine())) {
       var command = parseCommand(line);
-      if (gameFinishedAfter(command))
-        break;
+      if (gameFinishedAfter(command)) break;
     }
     if (players.values().stream().noneMatch(Player::hasWon)) {
       output.print("See you!");
@@ -42,7 +45,7 @@ public class GooseGame {
         var secondDice = Integer.parseInt(commandParts[3].trim());
         yield new MovePlayerCommand(commandParts[1], firstDice, secondDice);
       }
-      default -> throw new UnsupportedOperationException("unknown command");
+      default -> throw new UnsupportedOperationException("unknown command " + commandName);
     };
   }
 
