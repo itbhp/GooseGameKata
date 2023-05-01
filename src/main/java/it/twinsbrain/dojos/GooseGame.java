@@ -50,36 +50,47 @@ public class GooseGame {
   }
 
   private boolean gameFinishedAfter(Command command) {
-    switch (command) {
+    return switch (command) {
       case AddPlayerCommand addPlayerCommand -> {
-        switch (addPlayerCommand.execute(players::containsKey)) {
-          case PlayerAdded playerAdded -> {
-            players.put(addPlayerCommand.playerName, playerAdded.player);
-            output.println(playerAdded.messageFn.apply(players));
-          }
-          case PlayerAlreadyPresent playerAlreadyPresent -> output.println(
-              playerAlreadyPresent.message);
-        }
+        execute(addPlayerCommand);
+        yield false;
       }
-      case MovePlayerCommand movePlayerCommand -> {
-        switch (movePlayerCommand.execute(players::get)) {
-          case GameFinished gameFinished -> {
-            players.put(movePlayerCommand.playerName, gameFinished.winner);
-            output.print(gameFinished.message);
-            return true;
-          }
-          case PlayerMoved playerMoved -> {
-            players.put(movePlayerCommand.playerName, playerMoved.player);
-            output.println(playerMoved.message);
-          }
-          case PlayerBouncedBack playerBouncedBack -> {
-            players.put(movePlayerCommand.playerName, playerBouncedBack.player);
-            output.println(playerBouncedBack.message);
-          }
-        }
+      case MovePlayerCommand movePlayerCommand -> switch (execute(movePlayerCommand)) {
+        case GameFinished ignored -> true;
+        case PlayerBouncedBack ignored -> false;
+        case PlayerMoved ignored -> false;
+      };
+    };
+  }
+
+  private void execute(AddPlayerCommand addPlayerCommand) {
+    switch (addPlayerCommand.execute(players::containsKey)) {
+      case PlayerAdded playerAdded -> {
+        players.put(addPlayerCommand.playerName, playerAdded.player);
+        output.println(playerAdded.messageFn.apply(players));
       }
+      case PlayerAlreadyPresent player -> output.println(player.message);
     }
-    return false;
+  }
+
+  private MoveResult execute(MovePlayerCommand movePlayerCommand) {
+    return switch (movePlayerCommand.execute(players::get)) {
+      case GameFinished gameFinished -> {
+        players.put(movePlayerCommand.playerName, gameFinished.winner);
+        output.print(gameFinished.message);
+        yield gameFinished;
+      }
+      case PlayerMoved playerMoved -> {
+        players.put(movePlayerCommand.playerName, playerMoved.player);
+        output.println(playerMoved.message);
+        yield playerMoved;
+      }
+      case PlayerBouncedBack playerBouncedBack -> {
+        players.put(movePlayerCommand.playerName, playerBouncedBack.player);
+        output.println(playerBouncedBack.message);
+        yield playerBouncedBack;
+      }
+    };
   }
 
   sealed interface Result {}
@@ -120,7 +131,7 @@ public class GooseGame {
     }
 
     public String cell() {
-      return effectivePosition() == 0 ? "Start" : String.valueOf(effectivePosition());
+      return position == 0 ? "Start" : String.valueOf(effectivePosition());
     }
 
     private int effectivePosition() {
