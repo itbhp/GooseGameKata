@@ -2,6 +2,7 @@ package it.twinsbrain.dojos;
 
 import it.twinsbrain.dojos.commands.AddPlayerCommand;
 import it.twinsbrain.dojos.commands.Command;
+import it.twinsbrain.dojos.commands.CommandParser;
 import it.twinsbrain.dojos.commands.MovePlayerCommand;
 import it.twinsbrain.dojos.result.*;
 import java.io.BufferedReader;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GooseGame {
+  private static final CommandParser commandParser = new CommandParser();
   private final BufferedReader input;
   private final PrintWriter output;
   private final Map<String, Player> playersMap = new HashMap<>();
@@ -26,7 +28,7 @@ public class GooseGame {
     String line;
     while (!"quit".equals(line = input.readLine())) {
       try {
-        var command = parseCommand(line);
+        var command = commandParser.parse(line);
         if (gameFinishedAfter(command)) break;
       } catch (Exception e) {
         output.println("Unrecognized command, try again!");
@@ -40,20 +42,6 @@ public class GooseGame {
 
   private boolean noPlayersWon() {
     return playersMap.values().stream().noneMatch(Player::hasWon);
-  }
-
-  private static Command parseCommand(String line) {
-    var commandParts = line.split(" ");
-    var commandName = commandParts[0];
-    return switch (commandName) {
-      case "add" -> new AddPlayerCommand(commandParts[2]);
-      case "move" -> {
-        var firstDice = Integer.parseInt(commandParts[2].replace(",", "").trim());
-        var secondDice = Integer.parseInt(commandParts[3].trim());
-        yield new MovePlayerCommand(commandParts[1], firstDice, secondDice);
-      }
-      default -> throw new UnsupportedOperationException("unknown command " + commandName);
-    };
   }
 
   private boolean gameFinishedAfter(Command command) {
@@ -99,5 +87,4 @@ public class GooseGame {
       }
     };
   }
-
 }
