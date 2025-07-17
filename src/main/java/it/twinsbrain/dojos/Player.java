@@ -2,33 +2,31 @@ package it.twinsbrain.dojos;
 
 public record Player(String name, int position) {
 
-  private static final int BOARD_SIZE = 63;
-
-  public Player move(int steps) {
+    public Player move(int steps) {
     return new Player(name, position + steps);
   }
 
-  public boolean hasWon() {
-    return position == BOARD_SIZE;
+  public boolean hasWonGiven(int boardSize) {
+    return position == boardSize;
   }
 
-  public Player bounceBack() {
-    return new Player(name, BOARD_SIZE - exceedingSteps());
+  public Player bounceBack(int boardSize) {
+    return new Player(name, boardSize - exceedingSteps(boardSize));
   }
 
-  public boolean isBeyondTheFinish() {
-    return exceedingSteps() > 0;
+  public boolean isBeyondTheFinish(int boardSize) {
+    return exceedingSteps(boardSize) > 0;
   }
 
-  public String cell() {
-    return position == 0 ? "Start" : String.valueOf(effectivePosition());
+  public String cellGiven(int boardSize) {
+    return position == 0 ? "Start" : String.valueOf(effectivePosition(boardSize));
   }
 
-  private int effectivePosition() {
-    return Math.min(position, BOARD_SIZE);
+  private int effectivePosition(int boardSize) {
+    return Math.min(position, boardSize);
   }
 
-  private int exceedingSteps() {
-    return position - BOARD_SIZE;
+  private int exceedingSteps(int boardSize) {
+    return position - boardSize;
   }
 }

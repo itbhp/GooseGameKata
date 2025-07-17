@@ -18,6 +18,7 @@ public class GooseGame {
   private final BufferedReader input;
   private final PrintWriter output;
   private final Map<String, Player> playersMap = new HashMap<>();
+  private static final int BOARD_SIZE = 63;
 
   public GooseGame(InputStream input, OutputStream output) {
     this.input = new BufferedReader(new InputStreamReader(input));
@@ -28,7 +29,7 @@ public class GooseGame {
     String line;
     while (!"quit".equals(line = input.readLine())) {
       try {
-        var command = commandParser.parse(line);
+        var command = commandParser.parse(line, BOARD_SIZE);
         if (gameFinishedAfter(command)) break;
       } catch (Exception e) {
         output.println("Unrecognized command, try again!");
@@ -41,7 +42,7 @@ public class GooseGame {
   }
 
   private boolean noPlayersWon() {
-    return playersMap.values().stream().noneMatch(Player::hasWon);
+    return playersMap.values().stream().noneMatch(player -> player.hasWonGiven(BOARD_SIZE));
   }
 
   private boolean gameFinishedAfter(Command command) {

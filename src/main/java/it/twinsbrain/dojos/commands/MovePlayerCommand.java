@@ -8,24 +8,24 @@ import it.twinsbrain.dojos.result.MoveResult;
 import it.twinsbrain.dojos.result.PlayerBouncedBack;
 import it.twinsbrain.dojos.result.PlayerMoved;
 
-public record MovePlayerCommand(String playerName, int firstDice, int secondDice)
+public record MovePlayerCommand(String playerName, int firstDice, int secondDice, int boardSize)
     implements Command {
   public MoveResult move(Player player) {
     var movedPlayer = player.move(steps());
-    if (movedPlayer.isBeyondTheFinish()) {
-      var bounced = movedPlayer.bounceBack();
+    if (movedPlayer.isBeyondTheFinish(boardSize)) {
+      var bounced = movedPlayer.bounceBack(boardSize);
       var bouncedMessage =
           format(
               ". %s bounces! %s returns to %d", player.name(), player.name(), bounced.position());
       return new PlayerBouncedBack(
-          bounced, moveMessage(player.cell(), movedPlayer.cell()) + bouncedMessage);
+          bounced, moveMessage(player.cellGiven(boardSize), movedPlayer.cellGiven(boardSize)) + bouncedMessage);
     }
-    if (movedPlayer.hasWon()) {
+    if (movedPlayer.hasWonGiven(boardSize)) {
       return new GameFinished(
           movedPlayer,
-          moveMessage(player.cell(), movedPlayer.cell()) + ". " + player.name() + " Wins!!");
+          moveMessage(player.cellGiven(boardSize), movedPlayer.cellGiven(boardSize)) + ". " + player.name() + " Wins!!");
     }
-    return new PlayerMoved(movedPlayer, moveMessage(player.cell(), movedPlayer.cell()));
+    return new PlayerMoved(movedPlayer, moveMessage(player.cellGiven(boardSize), movedPlayer.cellGiven(boardSize)));
   }
 
   private int steps() {
