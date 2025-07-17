@@ -32,10 +32,14 @@ public class GooseGame {
         output.println("Unrecognized command, try again!");
       }
     }
-    if (playersMap.values().stream().noneMatch(Player::hasWon)) {
+    if (noPlayersWon()) {
       output.print("See you!");
     }
     output.flush();
+  }
+
+  private boolean noPlayersWon() {
+    return playersMap.values().stream().noneMatch(Player::hasWon);
   }
 
   private static Command parseCommand(String line) {
@@ -52,7 +56,6 @@ public class GooseGame {
     };
   }
 
-  @SuppressWarnings("UnusedAssignment")
   private boolean gameFinishedAfter(Command command) {
     return switch (command) {
       case AddPlayerCommand addPlayerCommand -> {

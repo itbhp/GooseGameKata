@@ -12,7 +12,9 @@ class GooseGameTest {
 
   @Test
   void should_allow_to_quit_game() throws Exception {
-    givenTheseCommands("quit").whenGameIsPlayed().thenOutputShouldBe("See you!");
+    givenTheseCommands("quit")
+            .whenGameIsPlayed()
+            .thenOutputShouldBe("See you!");
   }
 
   @Test
