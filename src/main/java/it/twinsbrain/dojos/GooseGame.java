@@ -59,7 +59,7 @@ public class GooseGame {
   }
 
   private void execute(AddPlayerCommand addPlayerCommand) {
-    switch (addPlayerCommand.execute(playersMap::containsKey)) {
+    switch (addPlayerCommand.createIfNotExists(playersMap::containsKey)) {
       case PlayerAdded playerAdded -> {
         playersMap.put(addPlayerCommand.playerName(), playerAdded.player());
         output.println(playerAdded.messageFn().apply(playersMap.values()));
@@ -69,7 +69,8 @@ public class GooseGame {
   }
 
   private MoveResult execute(MovePlayerCommand movePlayerCommand) {
-    return switch (movePlayerCommand.execute(playersMap::get)) {
+    var player = playersMap.get(movePlayerCommand.playerName());
+    return switch (movePlayerCommand.move(player)) {
       case GameFinished gameFinished -> {
         playersMap.put(movePlayerCommand.playerName(), gameFinished.winner());
         output.print(gameFinished.message());

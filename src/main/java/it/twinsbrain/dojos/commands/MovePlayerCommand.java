@@ -7,12 +7,10 @@ import it.twinsbrain.dojos.result.GameFinished;
 import it.twinsbrain.dojos.result.MoveResult;
 import it.twinsbrain.dojos.result.PlayerBouncedBack;
 import it.twinsbrain.dojos.result.PlayerMoved;
-import java.util.function.Function;
 
 public record MovePlayerCommand(String playerName, int firstDice, int secondDice)
     implements Command {
-  public MoveResult execute(Function<String, Player> retrievePlayer) {
-    var player = retrievePlayer.apply(playerName);
+  public MoveResult move(Player player) {
     var movedPlayer = player.move(steps());
     if (movedPlayer.isBeyondTheFinish()) {
       var bounced = movedPlayer.bounceBack();

@@ -9,7 +9,7 @@ import it.twinsbrain.dojos.result.PlayerAlreadyPresent;
 import java.util.function.Predicate;
 
 public record AddPlayerCommand(String playerName) implements Command {
-  public AddResult execute(Predicate<String> isExistingPlayer) {
+  public AddResult createIfNotExists(Predicate<String> isExistingPlayer) {
     if (isExistingPlayer.test(playerName)) {
       return new PlayerAlreadyPresent(playerName + ": already existing player");
     } else {
