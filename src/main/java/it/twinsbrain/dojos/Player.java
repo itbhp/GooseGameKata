@@ -19,7 +19,10 @@ public record Player(String name, int position) {
   }
 
   public String cellGiven(int boardSize) {
-    return position == 0 ? "Start" : String.valueOf(effectivePosition(boardSize));
+    var eff = effectivePosition(boardSize);
+    if (eff == 0) return "Start";
+    if (eff == 6) return "The Bridge";
+    return String.valueOf(eff);
   }
 
   private int effectivePosition(int boardSize) {

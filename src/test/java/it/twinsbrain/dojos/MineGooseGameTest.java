@@ -56,7 +56,7 @@ class MineGooseGameTest {
         .thenOutputShouldBe(
             """
                         players: Pippo
-                        Pippo rolls 4, 2. Pippo moves from Start to 6
+                        Pippo rolls 4, 2. Pippo moves from Start to The Bridge. Pippo jumps to 12
                         See you!""");
   }
 
@@ -74,9 +74,9 @@ class MineGooseGameTest {
             """
                         players: Pippo
                         players: Pippo, Pluto
-                        Pippo rolls 4, 2. Pippo moves from Start to 6
+                        Pippo rolls 4, 2. Pippo moves from Start to The Bridge. Pippo jumps to 12
                         Pluto rolls 2, 2. Pluto moves from Start to 4
-                        Pippo rolls 2, 1. Pippo moves from 6 to 9
+                        Pippo rolls 2, 1. Pippo moves from 12 to 15
                         See you!""");
   }
 

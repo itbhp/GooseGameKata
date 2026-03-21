@@ -12,6 +12,12 @@ public record MovePlayerCommand(String playerName, int firstDice, int secondDice
     implements Command {
   public MoveResult move(Player player) {
     var movedPlayer = player.move(firstDice + secondDice);
+    // The Bridge: landing on cell 6 jumps to 12
+    if (movedPlayer.position() == 6) {
+      var jumped = movedPlayer.move(6);
+      return new PlayerMoved(jumped, moveMessage(player.cellGiven(boardSize), "The Bridge") + 
+          ". " + playerName + " jumps to 12");
+    }
     if (movedPlayer.isBeyondTheFinish(boardSize)) {
       var bounced = movedPlayer.bounceBack(boardSize);
       var bouncedMessage =
