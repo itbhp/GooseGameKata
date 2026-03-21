@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+
 import org.junit.jupiter.api.Test;
 
 class MineGooseGameTest {
@@ -13,8 +14,8 @@ class MineGooseGameTest {
   @Test
   void should_allow_to_quit_game() throws Exception {
     givenTheseCommands("quit")
-            .whenGameIsPlayed()
-            .thenOutputShouldBe("See you!");
+        .whenGameIsPlayed()
+        .thenOutputShouldBe("See you!");
   }
 
   @Test
@@ -23,8 +24,8 @@ class MineGooseGameTest {
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        See you!""");
+                players: Pippo
+                See you!""");
   }
 
   @Test
@@ -33,9 +34,9 @@ class MineGooseGameTest {
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        players: Pippo, Pluto
-                        See you!""");
+                players: Pippo
+                players: Pippo, Pluto
+                See you!""");
   }
 
   @Test
@@ -44,9 +45,9 @@ class MineGooseGameTest {
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        Pippo: already existing player
-                        See you!""");
+                players: Pippo
+                Pippo: already existing player
+                See you!""");
   }
 
   @Test
@@ -55,29 +56,53 @@ class MineGooseGameTest {
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        Pippo rolls 4, 2. Pippo moves from Start to The Bridge. Pippo jumps to 12
-                        See you!""");
+                players: Pippo
+                Pippo rolls 4, 2. Pippo moves from Start to The Bridge. Pippo jumps to 12
+                See you!""");
+  }
+
+  @Test
+  void should_jump_when_landing_on_the_goose_single_jump() throws Exception {
+    givenTheseCommands("add player Pippo", "move Pippo 1, 2", "move Pippo 1, 1", "quit")
+        .whenGameIsPlayed()
+        .thenOutputShouldBe(
+            """
+                players: Pippo
+                Pippo rolls 1, 2. Pippo moves from Start to 3
+                Pippo rolls 1, 1. Pippo moves from 3 to 5, The Goose. Pippo moves again and goes to 7
+                See you!""");
+  }
+
+  @Test
+  void should_chain_multiple_goose_jumps() throws Exception {
+    givenTheseCommands("add player Pippo", "move Pippo 10, 0", "move Pippo 2, 2", "quit")
+        .whenGameIsPlayed()
+        .thenOutputShouldBe(
+            """
+                players: Pippo
+                Pippo rolls 10, 0. Pippo moves from Start to 10
+                Pippo rolls 2, 2. Pippo moves from 10 to 14, The Goose. Pippo moves again and goes to 18, The Goose. Pippo moves again and goes to 22
+                See you!""");
   }
 
   @Test
   void should_allow_to_move_multiple_players_in_the_board() throws Exception {
     givenTheseCommands(
-            "add player Pippo",
-            "add player Pluto",
-            "move Pippo 4, 2",
-            "move Pluto 2, 2",
-            "move Pippo 2, 1",
-            "quit")
+        "add player Pippo",
+        "add player Pluto",
+        "move Pippo 4, 2",
+        "move Pluto 2, 2",
+        "move Pippo 2, 1",
+        "quit")
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        players: Pippo, Pluto
-                        Pippo rolls 4, 2. Pippo moves from Start to The Bridge. Pippo jumps to 12
-                        Pluto rolls 2, 2. Pluto moves from Start to 4
-                        Pippo rolls 2, 1. Pippo moves from 12 to 15
-                        See you!""");
+                players: Pippo
+                players: Pippo, Pluto
+                Pippo rolls 4, 2. Pippo moves from Start to The Bridge. Pippo jumps to 12
+                Pluto rolls 2, 2. Pluto moves from Start to 4
+                Pippo rolls 2, 1. Pippo moves from 12 to 15
+                See you!""");
   }
 
   @Test
@@ -87,10 +112,10 @@ class MineGooseGameTest {
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        Pippo rolls 58, 2. Pippo moves from Start to 60
-                        Pippo rolls 2, 3. Pippo moves from 60 to 63. Pippo bounces! Pippo returns to 61
-                        See you!""");
+                players: Pippo
+                Pippo rolls 58, 2. Pippo moves from Start to 60
+                Pippo rolls 2, 3. Pippo moves from 60 to 63. Pippo bounces! Pippo returns to 61
+                See you!""");
   }
 
   @Test
@@ -99,9 +124,9 @@ class MineGooseGameTest {
         .whenGameIsPlayed()
         .thenOutputShouldBe(
             """
-                        players: Pippo
-                        Pippo rolls 58, 2. Pippo moves from Start to 60
-                        Pippo rolls 1, 2. Pippo moves from 60 to 63. Pippo Wins!!""");
+                players: Pippo
+                Pippo rolls 58, 2. Pippo moves from Start to 60
+                Pippo rolls 1, 2. Pippo moves from 60 to 63. Pippo Wins!!""");
   }
 
   static class GameTester {

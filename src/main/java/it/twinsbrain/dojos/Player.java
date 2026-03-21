@@ -22,6 +22,7 @@ public record Player(String name, int position) {
     var eff = effectivePosition(boardSize);
     if (eff == 0) return "Start";
     if (eff == 6) return "The Bridge";
+    // The Goose positions are normal numeric names
     return String.valueOf(eff);
   }
 
