@@ -6,6 +6,7 @@ import it.twinsbrain.dojos.Player;
 import it.twinsbrain.dojos.result.AddResult;
 import it.twinsbrain.dojos.result.PlayerAdded;
 import it.twinsbrain.dojos.result.PlayerAlreadyPresent;
+
 import java.util.function.Predicate;
 
 public record AddPlayerCommand(String playerName) implements Command {

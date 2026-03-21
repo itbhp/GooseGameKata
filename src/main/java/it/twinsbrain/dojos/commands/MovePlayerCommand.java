@@ -11,7 +11,7 @@ import it.twinsbrain.dojos.result.PlayerMoved;
 public record MovePlayerCommand(String playerName, int firstDice, int secondDice, int boardSize)
     implements Command {
   public MoveResult move(Player player) {
-    var movedPlayer = player.move(steps());
+    var movedPlayer = player.move(firstDice + secondDice);
     if (movedPlayer.isBeyondTheFinish(boardSize)) {
       var bounced = movedPlayer.bounceBack(boardSize);
       var bouncedMessage =
@@ -26,10 +26,6 @@ public record MovePlayerCommand(String playerName, int firstDice, int secondDice
           moveMessage(player.cellGiven(boardSize), movedPlayer.cellGiven(boardSize)) + ". " + player.name() + " Wins!!");
     }
     return new PlayerMoved(movedPlayer, moveMessage(player.cellGiven(boardSize), movedPlayer.cellGiven(boardSize)));
-  }
-
-  private int steps() {
-    return firstDice + secondDice;
   }
 
   private String moveMessage(String startCell, String finishCell) {

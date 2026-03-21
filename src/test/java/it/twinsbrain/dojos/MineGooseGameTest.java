@@ -1,6 +1,6 @@
 package it.twinsbrain.dojos;
 
-import static it.twinsbrain.dojos.GooseGameTest.GameTester.givenTheseCommands;
+import static it.twinsbrain.dojos.MineGooseGameTest.GameTester.givenTheseCommands;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -8,7 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import org.junit.jupiter.api.Test;
 
-class GooseGameTest {
+class MineGooseGameTest {
 
   @Test
   void should_allow_to_quit_game() throws Exception {
