@@ -1,7 +1,10 @@
 package it.twinsbrain.dojos;
 
+import it.twinsbrain.dojos.adapters.console.ConsoleAdapter;
+
+@SuppressWarnings("unused")
 public class Main {
-  static void main(String[] args) throws Exception {
-    new GooseGame(System.in, System.out).play();
+  public static void main(String[] args) throws Exception {
+    new ConsoleAdapter(System.in, System.out).play();
   }
 }

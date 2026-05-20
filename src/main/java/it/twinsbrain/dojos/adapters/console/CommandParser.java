@@ -1,6 +1,9 @@
-package it.twinsbrain.dojos.commands;
+package it.twinsbrain.dojos.adapters.console;
 
 import it.twinsbrain.dojos.Board;
+import it.twinsbrain.dojos.commands.AddPlayerCommand;
+import it.twinsbrain.dojos.commands.Command;
+import it.twinsbrain.dojos.commands.MovePlayerCommand;
 
 public class CommandParser {
 

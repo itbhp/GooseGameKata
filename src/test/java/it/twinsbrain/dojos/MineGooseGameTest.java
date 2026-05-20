@@ -4,6 +4,7 @@ import static it.twinsbrain.dojos.MineGooseGameTest.GameTester.givenTheseCommand
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+import it.twinsbrain.dojos.adapters.console.ConsoleAdapter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
@@ -144,7 +145,7 @@ class MineGooseGameTest {
     GameTester whenGameIsPlayed() throws Exception {
       var commands = String.join("\n", commandList);
       var input = new ByteArrayInputStream(commands.getBytes());
-      new GooseGame(input, output).play();
+      new ConsoleAdapter(input, output).play();
       return this;
     }
 
