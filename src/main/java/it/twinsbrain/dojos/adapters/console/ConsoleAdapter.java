@@ -15,11 +15,12 @@ import java.io.PrintWriter;
 
 public class ConsoleAdapter {
 
-  private static final CommandParser commandParser = new CommandParser();
   private final BufferedReader input;
   private final PrintWriter output;
   private final Board board = new Board(63);
   private final Game game = new Game(board);
+  private final CommandParser commandParser = new CommandParser();
+  private final ConsoleMessageFormatter formatter = new ConsoleMessageFormatter(board);
 
   public ConsoleAdapter(InputStream input, OutputStream output) {
     this.input = new BufferedReader(new InputStreamReader(input));
@@ -45,31 +46,17 @@ public class ConsoleAdapter {
   private boolean gameFinishedAfter(Command command) {
     return switch (command) {
       case AddPlayerCommand c -> {
-        display(game.addPlayer(c.playerName()));
+        var result = game.addPlayer(c.playerName());
+        output.println(formatter.format(result, game.players()));
         yield false;
       }
       case MovePlayerCommand c -> {
         var result = game.movePlayer(c.playerName(), c.firstDice(), c.secondDice());
-        display(result);
+        var message = formatter.format(result);
+        if (result instanceof GameFinished) output.print(message);
+        else output.println(message);
         yield result instanceof GameFinished;
       }
     };
-  }
-
-  private void display(AddResult result) {
-    switch (result) {
-      case PlayerAdded playerAdded ->
-          output.println(playerAdded.messageFn().apply(game.players()));
-      case PlayerAlreadyPresent playerAlreadyPresent ->
-          output.println(playerAlreadyPresent.message());
-    }
-  }
-
-  private void display(MoveResult result) {
-    switch (result) {
-      case GameFinished gameFinished -> output.print(gameFinished.message());
-      case PlayerMoved playerMoved -> output.println(playerMoved.message());
-      case PlayerBouncedBack playerBouncedBack -> output.println(playerBouncedBack.message());
-    }
   }
 }
