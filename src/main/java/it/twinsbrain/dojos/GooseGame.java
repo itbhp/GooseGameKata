@@ -6,6 +6,7 @@ import it.twinsbrain.dojos.commands.CommandParser;
 import it.twinsbrain.dojos.commands.MovePlayerCommand;
 import it.twinsbrain.dojos.result.*;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -18,18 +19,18 @@ public class GooseGame {
   private final BufferedReader input;
   private final PrintWriter output;
   private final Map<String, Player> playersMap = new HashMap<>();
-  private static final int BOARD_SIZE = 63;
+  private final Board board = new Board(63);
 
   public GooseGame(InputStream input, OutputStream output) {
     this.input = new BufferedReader(new InputStreamReader(input));
     this.output = new PrintWriter(output, true);
   }
 
-  public void play() throws Exception {
+  public void play() throws IOException {
     String line;
     while (!"quit".equals(line = input.readLine())) {
       try {
-        var command = commandParser.parse(line, BOARD_SIZE);
+        var command = commandParser.parse(line, board);
         if (gameFinishedAfter(command)) break;
       } catch (Exception e) {
         output.println("Unrecognized command, try again!");
@@ -42,7 +43,7 @@ public class GooseGame {
   }
 
   private boolean noPlayersWon() {
-    return playersMap.values().stream().noneMatch(player -> player.hasWonGiven(BOARD_SIZE));
+    return playersMap.values().stream().noneMatch(player -> board.isWin(player.position()));
   }
 
   private boolean gameFinishedAfter(Command command) {
