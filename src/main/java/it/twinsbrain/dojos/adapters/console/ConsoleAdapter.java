@@ -46,12 +46,12 @@ public class ConsoleAdapter {
   private boolean gameFinishedAfter(Command command) {
     return switch (command) {
       case AddPlayerCommand c -> {
-        var result = game.addPlayer(c.playerName());
+        var result = game.execute(c);
         output.println(formatter.format(result, game.players()));
         yield false;
       }
       case MovePlayerCommand c -> {
-        var result = game.movePlayer(c.playerName(), c.firstDice(), c.secondDice());
+        var result = game.execute(c);
         var message = formatter.format(result);
         if (result instanceof GameFinished) output.print(message);
         else output.println(message);

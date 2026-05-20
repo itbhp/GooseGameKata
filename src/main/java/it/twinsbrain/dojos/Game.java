@@ -16,18 +16,18 @@ public class Game {
     this.board = board;
   }
 
-  public AddResult addPlayer(String name) {
-    var command = new AddPlayerCommand(name);
+  public AddResult execute(AddPlayerCommand command) {
     var result = command.createIfNotExists(players::containsKey);
-    if (result instanceof PlayerAdded playerAdded) {
-      players.put(name, playerAdded.player());
+    if (result instanceof PlayerAdded(Player player)) {
+      players.put(command.playerName(), player);
     }
     return result;
   }
 
-  public MoveResult movePlayer(String name, int d1, int d2) {
+  public MoveResult execute(MovePlayerCommand movePlayerCommand) {
+    var name = movePlayerCommand.playerName();
     var player = players.get(name);
-    var result = new MovePlayerCommand(name, d1, d2, board).move(player);
+    var result = movePlayerCommand.move(player);
     switch (result) {
       case GameFinished gameFinished -> players.put(name, gameFinished.winner());
       case PlayerMoved playerMoved -> players.put(name, playerMoved.player());
