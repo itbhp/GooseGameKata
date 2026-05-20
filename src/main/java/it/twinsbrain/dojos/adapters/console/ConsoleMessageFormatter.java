@@ -1,14 +1,11 @@
 package it.twinsbrain.dojos.adapters.console;
 
-import static java.util.stream.Collectors.joining;
-
-import it.twinsbrain.dojos.Board;
-import it.twinsbrain.dojos.GooseChain;
-import it.twinsbrain.dojos.MoveContext;
-import it.twinsbrain.dojos.Player;
-import it.twinsbrain.dojos.SimpleMove;
+import it.twinsbrain.dojos.*;
 import it.twinsbrain.dojos.result.*;
+
 import java.util.Collection;
+
+import static java.util.stream.Collectors.joining;
 
 public class ConsoleMessageFormatter {
 
@@ -20,8 +17,7 @@ public class ConsoleMessageFormatter {
 
   public String format(AddResult result, Collection<Player> allPlayers) {
     return switch (result) {
-      case PlayerAdded ignored ->
-          "players: " + allPlayers.stream().map(Player::name).collect(joining(", "));
+      case PlayerAdded ignored -> "players: " + allPlayers.stream().map(Player::name).collect(joining(", "));
       case PlayerAlreadyPresent p -> p.playerName() + ": already existing player";
     };
   }
@@ -29,10 +25,20 @@ public class ConsoleMessageFormatter {
   public String format(MoveResult result) {
     return switch (result) {
       case PlayerMoved pm -> formatPlayerMoved(pm);
-      case PlayerBouncedBack pbb -> formatBase(pbb.context(), pbb.player().position())
+      case PlayerBouncedBack pbb -> bouncePrefix(pbb.context())
           + ". " + pbb.player().name() + " bounces! " + pbb.player().name() + " returns to " + pbb.player().position();
-      case GameFinished gf -> formatBase(gf.context(), gf.winner().position())
+      case GameFinished gf -> bouncePrefix(gf.context())
           + ". " + gf.winner().name() + " Wins!!";
+    };
+  }
+
+  private String bouncePrefix(MoveContext pbb) {
+    return switch (pbb) {
+      case SimpleMove sm -> {
+        var displayTo = board.isBeyondFinish(sm.landedPosition()) ? board.size() : sm.landedPosition();
+        yield header(sm) + board.nameOf(sm.fromPosition()) + " to " + displayTo;
+      }
+      case GooseChain gc -> formatGooseChain(gc);
     };
   }
 
@@ -41,21 +47,15 @@ public class ConsoleMessageFormatter {
       case SimpleMove sm when board.isBridge(sm.landedPosition()) ->
           header(sm) + board.nameOf(sm.fromPosition()) + " to The Bridge"
               + ". " + sm.playerName() + " jumps to " + board.bridgeDestination();
-      default -> formatBase(pm.context(), pm.player().position());
-    };
-  }
-
-  private String formatBase(MoveContext ctx, int finalPosition) {
-    return switch (ctx) {
       case SimpleMove sm -> {
         var displayTo = board.isBeyondFinish(sm.landedPosition()) ? board.size() : sm.landedPosition();
         yield header(sm) + board.nameOf(sm.fromPosition()) + " to " + displayTo;
       }
-      case GooseChain gc -> formatGooseChain(gc, finalPosition);
+      case GooseChain gc -> formatGooseChain(gc);
     };
   }
 
-  private String formatGooseChain(GooseChain gc, int finalPosition) {
+  private String formatGooseChain(GooseChain gc) {
     var sb = new StringBuilder(header(gc)).append(board.nameOf(gc.fromPosition()));
     var positions = gc.visitedPositions();
     for (int i = 0; i < positions.size(); i++) {
