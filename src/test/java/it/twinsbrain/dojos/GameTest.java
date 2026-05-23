@@ -51,6 +51,14 @@ class GameTest {
   }
 
   @Test
+  void movingAPlayerOnTheBridgeJumpsToPosition12() {
+    game.execute(new AddPlayerCommand("Pippo"));
+    var result = game.execute(new MovePlayerCommand("Pippo", 4, 2, board)); // Start → Bridge → jumps to 12
+    assertThat(result, instanceOf(PlayerMoved.class));
+    assertThat(((PlayerMoved) result).player().position(), equalTo(12));
+  }
+
+  @Test
   void movingAPlayerBeyondTheFinishReturnsPlayerBouncedBack() {
     game.execute(new AddPlayerCommand("Pippo"));
     game.execute(new MovePlayerCommand("Pippo", 58, 2, board)); // → 60
