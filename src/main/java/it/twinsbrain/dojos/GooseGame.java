@@ -14,15 +14,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GooseGame {
-  private static final CommandParser commandParser = new CommandParser();
+  private final CommandParser commandParser;
   private final BufferedReader input;
   private final PrintWriter output;
   private final Map<String, Player> playersMap = new HashMap<>();
   private static final int BOARD_SIZE = 63;
 
   public GooseGame(InputStream input, OutputStream output) {
+    this(input, output, new RandomDiceRoller());
+  }
+
+  public GooseGame(InputStream input, OutputStream output, DiceRoller diceRoller) {
     this.input = new BufferedReader(new InputStreamReader(input));
     this.output = new PrintWriter(output, true);
+    this.commandParser = new CommandParser(diceRoller);
   }
 
   public void play() throws Exception {
@@ -51,11 +56,17 @@ public class GooseGame {
         execute(addPlayerCommand);
         yield false;
       }
-      case MovePlayerCommand movePlayerCommand -> switch (execute(movePlayerCommand)) {
-        case GameFinished ignored -> true;
-        case PlayerBouncedBack ignored -> false;
-        case PlayerMoved ignored -> false;
-      };
+      case MovePlayerCommand movePlayerCommand -> {
+        if (!playersMap.containsKey(movePlayerCommand.playerName())) {
+          output.println(movePlayerCommand.playerName() + ": player not found");
+          yield false;
+        }
+        yield switch (execute(movePlayerCommand)) {
+          case GameFinished ignored -> true;
+          case PlayerBouncedBack ignored -> false;
+          case PlayerMoved ignored -> false;
+        };
+      }
     };
   }
 
@@ -78,15 +89,38 @@ public class GooseGame {
         yield gameFinished;
       }
       case PlayerMoved playerMoved -> {
-        playersMap.put(movePlayerCommand.playerName(), playerMoved.player());
-        output.println(playerMoved.message());
-        yield playerMoved;
+        var withPrank = applyPrank(movePlayerCommand.playerName(), player, playerMoved);
+        playersMap.put(movePlayerCommand.playerName(), withPrank.player());
+        output.println(withPrank.message());
+        yield withPrank;
       }
       case PlayerBouncedBack playerBouncedBack -> {
-        playersMap.put(movePlayerCommand.playerName(), playerBouncedBack.player());
-        output.println(playerBouncedBack.message());
-        yield playerBouncedBack;
+        var withPrank = applyPrank(movePlayerCommand.playerName(), player, playerBouncedBack);
+        playersMap.put(movePlayerCommand.playerName(), withPrank.player());
+        output.println(withPrank.message());
+        yield withPrank;
       }
     };
+  }
+
+  private PlayerMoved applyPrank(String currentPlayerName, Player previousPlayer, PlayerMoved result) {
+    var updatedMessage = appendPrankMessage(currentPlayerName, result.player().position(), previousPlayer.position(), result.message());
+    return new PlayerMoved(result.player(), updatedMessage);
+  }
+
+  private PlayerBouncedBack applyPrank(String currentPlayerName, Player previousPlayer, PlayerBouncedBack result) {
+    var updatedMessage = appendPrankMessage(currentPlayerName, result.player().position(), previousPlayer.position(), result.message());
+    return new PlayerBouncedBack(result.player(), updatedMessage);
+  }
+
+  private String appendPrankMessage(String currentPlayerName, int landingPosition, int previousPosition, String message) {
+    var occupant = playersMap.entrySet().stream()
+        .filter(e -> !e.getKey().equals(currentPlayerName))
+        .filter(e -> e.getValue().position() == landingPosition)
+        .findFirst();
+    if (occupant.isEmpty()) return message;
+    var occupantName = occupant.get().getKey();
+    playersMap.put(occupantName, new Player(occupantName, previousPosition));
+    return message + ". On " + landingPosition + " there is " + occupantName + ", who returns to " + previousPosition;
   }
 }
