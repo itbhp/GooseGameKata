@@ -184,6 +184,7 @@ class MineGooseGameTest {
       return new GameTester(commandList);
     }
 
+    @SuppressWarnings("SameParameterValue")
     GameTester withDice(int first, int second) {
       this.diceRoller = () -> new DiceRoll(first, second);
       return this;
