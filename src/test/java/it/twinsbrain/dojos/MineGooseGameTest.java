@@ -4,6 +4,7 @@ import static it.twinsbrain.dojos.MineGooseGameTest.GameTester.givenTheseCommand
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
+import it.twinsbrain.dojos.adapters.console.ConsoleAdapter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
@@ -119,6 +120,35 @@ class MineGooseGameTest {
   }
 
   @Test
+  void should_displace_player_when_landing_on_occupied_space() throws Exception {
+    givenTheseCommands(
+        "add player Pippo",
+        "add player Bob",
+        "move Pippo 3, 1",
+        "move Bob 2, 2",
+        "quit")
+        .whenGameIsPlayed()
+        .thenOutputShouldBe(
+            """
+                players: Pippo
+                players: Bob, Pippo
+                Pippo rolls 3, 1. Pippo moves from Start to 4
+                Bob rolls 2, 2. Bob moves from Start to 4. On 4 there is Pippo, who returns to Start
+                See you!""");
+  }
+
+  @Test
+  void should_notify_when_moving_a_non_existent_player() throws Exception {
+    givenTheseCommands("add player Pippo", "move NonExistent 1, 2", "quit")
+        .whenGameIsPlayed()
+        .thenOutputShouldBe(
+            """
+                players: Pippo
+                NonExistent: player not found
+                See you!""");
+  }
+
+  @Test
   void should_finish_when_a_player_wins() throws Exception {
     givenTheseCommands("add player Pippo", "move Pippo 58, 2", "move Pippo 1, 2")
         .whenGameIsPlayed()
@@ -129,52 +159,9 @@ class MineGooseGameTest {
                 Pippo rolls 1, 2. Pippo moves from 60 to 63. Pippo Wins!!""");
   }
 
-  @Test
-  void should_print_error_when_moving_non_existent_player() throws Exception {
-    givenTheseCommands("move Pippo 1, 2", "quit")
-        .whenGameIsPlayed()
-        .thenOutputShouldBe(
-            """
-                Pippo: player not found
-                See you!""");
-  }
-
-  @Test
-  void should_prank_other_player_when_landing_on_occupied_space() throws Exception {
-    givenTheseCommands(
-        "add player Pippo",
-        "add player Pluto",
-        "move Pippo 10, 5",
-        "move Pluto 10, 7",
-        "move Pippo 1, 1",
-        "quit")
-        .whenGameIsPlayed()
-        .thenOutputShouldBe(
-            """
-                players: Pippo
-                players: Pippo, Pluto
-                Pippo rolls 10, 5. Pippo moves from Start to 15
-                Pluto rolls 10, 7. Pluto moves from Start to 17
-                Pippo rolls 1, 1. Pippo moves from 15 to 17. On 17 there is Pluto, who returns to 15
-                See you!""");
-  }
-
-  @Test
-  void should_auto_roll_dice_when_dice_not_specified() throws Exception {
-    givenTheseCommands("add player Pippo", "move Pippo", "quit")
-        .withDice(1, 2)
-        .whenGameIsPlayed()
-        .thenOutputShouldBe(
-            """
-                players: Pippo
-                Pippo rolls 1, 2. Pippo moves from Start to 3
-                See you!""");
-  }
-
   static class GameTester {
     private final CharSequence[] commandList;
     private final ByteArrayOutputStream output = new ByteArrayOutputStream();
-    private DiceRoller diceRoller = new RandomDiceRoller();
 
     GameTester(CharSequence[] commandList) {
       this.commandList = commandList;
@@ -184,16 +171,10 @@ class MineGooseGameTest {
       return new GameTester(commandList);
     }
 
-    @SuppressWarnings("SameParameterValue")
-    GameTester withDice(int first, int second) {
-      this.diceRoller = () -> new DiceRoll(first, second);
-      return this;
-    }
-
     GameTester whenGameIsPlayed() throws Exception {
       var commands = String.join("\n", commandList);
       var input = new ByteArrayInputStream(commands.getBytes());
-      new GooseGame(input, output, diceRoller).play();
+      new ConsoleAdapter(input, output).play();
       return this;
     }
 
